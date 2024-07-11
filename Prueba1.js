@@ -58,7 +58,7 @@ app.listen(port, () => {
  }); 
 
  const pgp = require('pg-promise')();
- const db = pgp('postgres://username:password@host:port/database');
+ const db = pgp('postgresql://tp_base_de_datos_arqr_user:ogjOnQckRCo9QT8nKRyxCizI3zrHH00E@dpg-cq7vuajv2p9s73cckahg-a.oregon-postgres.render.com/tp_base_de_datos_arqr');
  
  // Endpoint para obtener usuarios desde PostgreSQL
  app.get('/api/users', async (req, res) => {
