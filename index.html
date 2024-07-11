@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Nuevo Usuario</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    label, input, button {
+      display: block;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Crear Nuevo Usuario</h2>
+  <form id="userForm">
+    <label for="name">Nombre:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+
+    <button type="submit">Crear Usuario</button>
+  </form>
+
+  <div id="response"></div>
+
+  <script>
+    // Manejar el envío del formulario
+    document.getElementById('userForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(this);
+      const responseElement = document.getElementById('response');
+
+      try {
+        const response = await fetch('http://tu-host/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+            // Si necesitas autenticación u otros headers, agrégalos aquí
+          },
+          body: JSON.stringify({
+            name: formData.get('name'),
+            email: formData.get('email')
+          })
+        });
+
+        const data = await response.json();
+        responseElement.innerHTML = `<p>Respuesta: ${JSON.stringify(data)}</p>`;
+      } catch (error) {
+        responseElement.innerHTML = `<p>Error al enviar la solicitud: ${error.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
