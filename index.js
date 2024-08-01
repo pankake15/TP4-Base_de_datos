@@ -6,16 +6,20 @@ const { Client } = pg;
 // Define the connection string to connect to the PostgreSQL database
 const connectionString = 'postgresql://tp_base_de_datos_user:zERui0xpST8aaiOiFyYsK8dnEKaFwraK@dpg-cq60ud56l47c738sshag-a.ohio-postgres.render.com/tp_base_de_datos';
 
-// Create a new Client instance with the connection string
+// Create a new Client instance with the connection string and increased timeout settings
 const client = new Client({
     connectionString,
+    connectionTimeoutMillis: 30000, // 30 seconds
+    idle_in_transaction_session_timeout: 60000 // 60 seconds
 });
 
 // Define an asynchronous function to create a table using a single client connection
 async function createTableWithClient() {
     try {
+        console.log('Attempting to connect to the database...');
         // Establish a connection to the database
         await client.connect();
+        console.log('Connected to the database.');
 
         // Execute the SQL query to create the table
         await client.query(`
@@ -31,9 +35,17 @@ async function createTableWithClient() {
     } catch (error) {
         // Log any errors that occur during table creation
         console.error('Error creating table:', error);
+        if (error.code === 'ECONNRESET') {
+            console.error('Connection was reset by the server. Please check your network connection and database server.');
+        } else if (error.code === '28P01') {
+            console.error('Invalid authentication. Please check your username and password.');
+        } else {
+            console.error('An unexpected error occurred:', error.message);
+        }
     } finally {
         // Close the client connection when done
         await client.end();
+        console.log('Database connection closed.');
     }
 }
 
