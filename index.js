@@ -4,7 +4,7 @@ import pg from 'pg';
 const { Client } = pg;
 
 // Define the connection string to connect to the PostgreSQL database
-const connectionString = 'postgresql://tp_base_de_datos_user:zERui0xpST8aaiOiFyYsK8dnEKaFwraK@dpg-cq60ud56l47c738sshag-a.ohio-postgres.render.com/tp_base_de_datos';
+const connectionString = 'postgresql://tp_base_de_datos_user:zERui0xpST8aaiOiFyYsK8dnEKaFwraK@dpg-cq60ud56l47c738sshag-a.ohio-postgres.render.com/tp_base_de_datos?ssl=true';
 
 // Create a new Client instance with the connection string and increased timeout settings
 const client = new Client({
