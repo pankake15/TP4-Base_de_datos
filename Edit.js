@@ -5,7 +5,7 @@ import readline from 'readline';
 const { Client } = pg;
 
 // Define the connection string to connect to the PostgreSQL database
-const connectionString = 'postgresql://tp_base_de_datos_user:zERui0xpST8aaiOiFyYsK8dnEKaFwraK@dpg-cq60ud56l47c738sshag-a.ohio-postgres.render.com/tp_base_de_datos?ssl=true';
+const connectionString = 'postgresql://tp_base_de_datos_la_secuela_user:xix0T1D43Xmkuiv5PbNCIJ695Xz9EhfV@dpg-cqqdv8bv2p9s73b65pvg-a.ohio-postgres.render.com/tp_base_de_datos_la_secuela?ssl=true';
 
 // Create a new Client instance with the connection string and increased timeout settings
 const client = new Client({
