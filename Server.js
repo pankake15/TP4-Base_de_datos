@@ -122,6 +122,6 @@ app.delete('/delete-all-data', async (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${port}/read-data`);
 });
 
