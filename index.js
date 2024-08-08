@@ -1,3 +1,6 @@
+//  git config --global user.email "diegospitale5@gmail.com"
+//  git config --global user.name "pankake15"
+
 import pg from 'pg';
 //.
 // Destructure Client class from the pg module
