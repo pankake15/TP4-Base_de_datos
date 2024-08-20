@@ -1,100 +1,65 @@
 import express from 'express';
 import pg from 'pg';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Destructure Client class from the pg module
+// Setup for __dirname and __filename
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// PostgreSQL client configuration
 const { Client } = pg;
-
-// Define the connection string to connect to the PostgreSQL database
 const connectionString = 'postgresql://tp_base_de_datos_la_secuela_user:xix0T1D43Xmkuiv5PbNCIJ695Xz9EhfV@dpg-cqqdv8bv2p9s73b65pvg-a.ohio-postgres.render.com/tp_base_de_datos_la_secuela?ssl=true';
 
-// Create a new Client instance with the connection string and increased timeout settings
 const client = new Client({
     connectionString,
     connectionTimeoutMillis: 30000, // 30 seconds
     idle_in_transaction_session_timeout: 60000 // 60 seconds
 });
 
-// Initialize Express app
+// Connect to the database once and reuse the connection
+client.connect().catch(error => console.error('Failed to connect to the database:', error));
+
 const app = express();
 const port = 3000;
-
-// Middleware to parse JSON bodies
 app.use(express.json());
 
-// Define an asynchronous function to insert default data into the users table
-async function insertDefaultData() {
+// Helper function to handle database queries
+async function executeQuery(query, params = []) {
     try {
-        await client.connect();
-        const query = `
-            INSERT INTO users (name, email) VALUES
-            ('John Doe', 'john.doherngsgdgs@example.com'),
-            ('Jane Smith', 'jane.smithsdgdsfg@example.com'),
-            ('Alice Johnson', 'alice.johnsogsdfgdn@example.com')
-            ON CONFLICT (email) DO NOTHING;
-        `;
-        await client.query(query);
-        return 'Default data inserted successfully.';
-    } catch (error) {
-        throw error;
-    } finally {
-        await client.end();
-    }
-}
-
-// Define an asynchronous function to read data from the users table
-async function readData() {
-    try {
-        await client.connect();
-        const result = await client.query('SELECT * FROM users');
+        const result = await client.query(query, params);
         return result.rows;
     } catch (error) {
+        console.error('Database query failed:', error);
         throw error;
-    } finally {
-        await client.end();
     }
 }
 
-// Define an asynchronous function to delete data by id from the users table
-async function deleteData(id) {
-    try {
-        await client.connect();
-        const query = 'DELETE FROM users WHERE id = $1 RETURNING *;';
-        const result = await client.query(query, [id]);
-        return result.rows;
-    } catch (error) {
-        throw error;
-    } finally {
-        await client.end();
-    }
-}
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-// Define an asynchronous function to delete all data from the users table
-async function deleteAllData() {
-    try {
-        await client.connect();
-        const query = 'DELETE FROM users';
-        await client.query(query);
-        return 'All data deleted successfully.';
-    } catch (error) {
-        throw error;
-    } finally {
-        await client.end();
-    }
-}
-
-// Define routes
 app.post('/insert-default-data', async (req, res) => {
+    const query = `
+        INSERT INTO users (name, email) VALUES
+        ('John Doe', 'john.doe@example.com'),
+        ('Jane Smith', 'jane.smith@example.com'),
+        ('Alice Johnson', 'alice.johnson@example.com')
+        ON CONFLICT (email) DO NOTHING;
+    `;
     try {
-        const message = await insertDefaultData();
-        res.status(200).send(message);
+        await executeQuery(query);
+        res.status(200).send('Default data inserted successfully.');
     } catch (error) {
         res.status(500).send(`Error: ${error.message}`);
     }
 });
 
 app.get('/read-data', async (req, res) => {
+    const query = 'SELECT * FROM users';
     try {
-        const data = await readData();
+        const data = await executeQuery(query);
         res.status(200).json(data);
     } catch (error) {
         res.status(500).send(`Error: ${error.message}`);
@@ -102,9 +67,10 @@ app.get('/read-data', async (req, res) => {
 });
 
 app.delete('/delete-data/:id', async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const query = 'DELETE FROM users WHERE id = $1 RETURNING *;';
     try {
-        const id = parseInt(req.params.id, 10);
-        const data = await deleteData(id);
+        const data = await executeQuery(query, [id]);
         res.status(200).json(data);
     } catch (error) {
         res.status(500).send(`Error: ${error.message}`);
@@ -112,16 +78,19 @@ app.delete('/delete-data/:id', async (req, res) => {
 });
 
 app.delete('/delete-all-data', async (req, res) => {
+    const deleteQuery = 'DELETE FROM users';
+    const resetSequenceQuery = "ALTER SEQUENCE users_id_seq RESTART WITH 1";
+
     try {
-        const message = await deleteAllData();
-        res.status(200).send(message);
+        await executeQuery(deleteQuery);
+        await executeQuery(resetSequenceQuery);
+        return 'All data deleted and ID sequence reset successfully.';
     } catch (error) {
-        res.status(500).send(`Error: ${error.message}`);
+        console.error('Failed to delete data and reset sequence:', error);
+        throw error;
     }
 });
 
-// Start the server
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}/read-data`);
+    console.log(`Server is running on http://localhost:${port}`);
 });
-
